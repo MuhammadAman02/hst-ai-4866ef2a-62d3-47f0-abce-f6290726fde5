@@ -1,77 +1,77 @@
 from nicegui import ui, app
-import logging
-import asyncio
+from fastapi import FastAPI
+from app.core.config import settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+# Initialize FastAPI app
+fast_app = FastAPI()
+app.include(fast_app)
 
-# Initialize counter for demo
-count = 0
+# Portfolio data
+portfolio_data = {
+    "name": "Alex Johnson",
+    "title": "AI Engineer specializing in LLMs",
+    "about": "Passionate AI engineer with 5+ years of experience in developing and deploying large language models. Expertise in natural language processing, transformer architectures, and scalable AI systems.",
+    "skills": ["PyTorch", "TensorFlow", "Hugging Face Transformers", "BERT", "GPT", "T5", "RAG", "Fine-tuning LLMs", "Prompt Engineering", "MLOps"],
+    "projects": [
+        {
+            "title": "Multilingual Customer Support Chatbot",
+            "description": "Developed a BERT-based chatbot capable of handling customer queries in 10 languages, improving response times by 40%.",
+        },
+        {
+            "title": "AI-powered Content Summarization Tool",
+            "description": "Created a T5-based summarization tool that generates concise summaries of long-form content, increasing user engagement by 25%.",
+        },
+        {
+            "title": "Sentiment Analysis for Social Media Monitoring",
+            "description": "Implemented a RoBERTa-based sentiment analysis model for real-time social media monitoring, achieving 92% accuracy.",
+        },
+    ],
+    "contact": {
+        "email": "alex.johnson@example.com",
+        "linkedin": "https://www.linkedin.com/in/alexjohnson",
+        "github": "https://github.com/alexjohnson",
+    }
+}
 
-# Define the main page
 @ui.page('/')
-def main_page():
-    """Main page of the NiceGUI application."""
-    with ui.card().classes('w-full max-w-3xl mx-auto'):
-        ui.label('NiceGUI Application').classes('text-2xl font-bold')
-        ui.markdown('''
-        Welcome to the NiceGUI application! NiceGUI allows you to create web UIs with Python.
+def portfolio():
+    with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
+        ui.markdown(f"# {portfolio_data['name']}").classes('text-3xl font-bold mb-2')
+        ui.markdown(f"## {portfolio_data['title']}").classes('text-xl text-gray-600 mb-4')
         
-        Features:
-        - Build UIs with pure Python
-        - Real-time updates
-        - Easy integration with FastAPI
-        - Interactive components
-        ''')
+        with ui.card().classes('w-full mb-4'):
+            ui.markdown("## About Me").classes('text-2xl font-bold mb-2')
+            ui.markdown(portfolio_data['about'])
         
-        # Counter demo
-        with ui.row().classes('items-center'):
-            ui.label('Counter:').classes('mr-2')
-            label = ui.label(str(count)).classes('text-lg font-bold')
-            
-            def increment():
-                global count
-                count += 1
-                label.text = str(count)
-                logger.info(f"Counter incremented to {count}")
-            
-            def decrement():
-                global count
-                count -= 1
-                label.text = str(count)
-                logger.info(f"Counter decremented to {count}")
-            
-            ui.button('Decrement', on_click=decrement).props('color=red')
-            ui.button('Increment', on_click=increment).props('color=green')
+        with ui.card().classes('w-full mb-4'):
+            ui.markdown("## Skills").classes('text-2xl font-bold mb-2')
+            with ui.row().classes('flex flex-wrap'):
+                for skill in portfolio_data['skills']:
+                    ui.badge(skill).classes('m-1')
         
-        # Add a chart for demonstration
-        with ui.card().classes('w-full mt-4'):
-            ui.label('Sample Chart').classes('text-xl')
-            chart = ui.chart({
-                'title': {'text': 'Sample Data'},
-                'xAxis': {'categories': ['Jan', 'Feb', 'Mar', 'Apr', 'May']},
-                'series': [{
-                    'name': 'Data Series 1',
-                    'data': [29, 71, 106, 129, 144]
-                }, {
-                    'name': 'Data Series 2',
-                    'data': [80, 120, 105, 110, 95]
-                }]
-            }).classes('h-64')
+        with ui.card().classes('w-full mb-4'):
+            ui.markdown("## Projects").classes('text-2xl font-bold mb-2')
+            for project in portfolio_data['projects']:
+                with ui.card().classes('w-full mb-2'):
+                    ui.markdown(f"### {project['title']}").classes('text-xl font-bold')
+                    ui.markdown(project['description'])
+        
+        with ui.card().classes('w-full'):
+            ui.markdown("## Contact").classes('text-2xl font-bold mb-2')
+            ui.markdown(f"Email: {portfolio_data['contact']['email']}")
+            ui.link("LinkedIn", portfolio_data['contact']['linkedin']).classes('block')
+            ui.link("GitHub", portfolio_data['contact']['github']).classes('block')
 
-# API endpoints can be added with FastAPI
-@app.get('/api/health')
-def health_check():
-    """Health check endpoint."""
-    return {'status': 'ok'}
+# API endpoint for portfolio data
+@app.get('/api/portfolio')
+def get_portfolio_data():
+    return portfolio_data
 
-# Configure app
-app.title = 'NiceGUI Application'
+# Dark mode toggle
+@ui.page('/')
+def dark_mode_toggle():
+    dark = ui.dark_mode()
+    ui.button('Toggle Dark Mode', on_click=dark.toggle).classes('fixed top-2 right-2')
 
-# This is needed for the main.py integration
-if __name__ == '__main__':
-    ui.run()
+# Run the app
+ui.run(title=settings.APP_NAME)
